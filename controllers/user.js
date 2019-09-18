@@ -46,6 +46,7 @@ exports.login = catchAsync(async (req, res, next) => {
         return next(new Error('please provide email to login!', 400));
     }
     const user = await UserData.findOne({ email });
+
     // 2 check if email entered is valid and have data in user collection
     if (user === null) {
         return next(new Error('please provide valid email to login! No such email found', 400));
@@ -56,7 +57,7 @@ exports.login = catchAsync(async (req, res, next) => {
         statusCode: 200,
         status: 'success',
         token: token,
-        message: `Welcome ${user.name.first}`
+        message: `Welcome ${user.name.first} your user id is--> ${user._id}`
     });
 });
 
@@ -76,4 +77,4 @@ exports.protect = catchAsync(async (req, res, next) => {
     req.user = currentUser;
     // console.log(req.user.id);
     next();
-})
+});

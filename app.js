@@ -2,6 +2,7 @@ const express = require("express");
 const morgan = require('morgan');
 const router = require('./routes/user');
 const postRouter = require('./routes/posts');
+const postActionsRouter = require('./routes/postActions');
 const globalErrorHandler = require('./controllers/errorController');
 const app = express();
 
@@ -26,8 +27,10 @@ app.use((req, res, next) => {
 /**
  * custom router middleware  
  */
-app.use('/api/v1/mongo', router)
-app.use('/api/v1/mongo', postRouter)
+app.use('/api/v1/mongo', router);
+app.use('/api/v1/mongo', postRouter);
+app.use('/api/v1/mongo', postActionsRouter);
+
 
 
 app.all('*', (req, res, next) => {

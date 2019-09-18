@@ -1,44 +1,28 @@
 const mongoose = require('mongoose');
 
 const postActionSchema = new mongoose.Schema({
-    likes: {
-        likedBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'user'
-        },
-        postId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'post'
-        }
+    userActionType: {
+        type: String,
+        enum: ['like', 'comment', 'report'],
+        required: [true, 'please provide action type']
     },
-    comments: {
-        commentedBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'user'
-        },
-        postId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'post'
-        },
-        body: {
-            type: String,
-            default: "default comment"
-        },
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user',
+        required: [true, 'must have a user Id']
     },
-    reports: {
-        ropertedBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'user'
-        },
-        body: {
-            type: String,
-            minlength: 10,
-            maxlength: 100,
-            default: "reason----reportBody"
-        },
+    postId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'post',
+        required: [true, 'must have a user Id']
+    },
+    textBody: {
+        type: String,
+        minlength: 10,
+        maxlength: 255,
     }
 });
 
-const PostAction = mongoose.model('postAction', postActionSchema);
+const PostActionData = mongoose.model('postAction', postActionSchema);
 
-module.exports = PostAction;
+module.exports = PostActionData;

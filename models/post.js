@@ -17,7 +17,8 @@ const postSchema = new mongoose.Schema({
         body: {
             type: String,
             minlength: 30,
-            maxlength: 255
+            maxlength: 255,
+            default:'empty content body',
         }
     },
     impressions: {
