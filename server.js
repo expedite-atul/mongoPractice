@@ -12,9 +12,9 @@ mongoose
     .connect(DB, {
         useNewUrlParser: true,
         useCreateIndex: true,
-        useFindAndModify: false
+        useFindAndModify: false,
     }).then(() => console.log('DB connected'));
-
+    mongoose.set('debug', true);
 const port = process.env.PORT || 3000;
 
 process.on('unhandledRejection', err => {
