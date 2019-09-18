@@ -1,5 +1,5 @@
 const express = require('express');
-const { create, get } = require('./../controllers/post')
+const { create, get, getAllPostsByUser } = require('./../controllers/post')
 const { protect } = require('./../controllers/user');
 
 
@@ -10,6 +10,7 @@ const postRouter = express.Router();
 
 postRouter.post('/user/post', protect, create);
 postRouter.get('/user/post', protect, get);
+postRouter.get('/user/:userId/post/?', protect, getAllPostsByUser);
 
 module.exports = postRouter;
 
