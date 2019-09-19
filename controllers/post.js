@@ -1,5 +1,6 @@
 // const ProductData = require('../models/product');
 const catchAsync = require('../utils/catchAsync');
+const UserData = require('../models/user');
 const PostData = require('../models/post');
 const ObjectId = require('mongoose').Types.ObjectId;
 /**
@@ -18,16 +19,65 @@ exports.create = catchAsync(async (req, res) => {
 });
 
 /**
- * function to get all posts
+ * function to get user details and its posts
  */
 exports.getLikedPosts = catchAsync(async (req, res) => {
+    let userDetail = await UserData.findOne({ _id: req.params.userId }, { _id: 0, name: 1, picture: 1 });
+    let imagePosts = await PostData.aggregate([
+        { $match: { $and: [{ 'postAuthor': ObjectId(req.params.userId) }, { 'content.type': 'image' }] } },
+        { $skip: 0 },
+        { $limit: 5 },
+        {
+            $lookup:
+            {
+                from: 'postactions',
+                let: { 'authorId': '$_id' },
+                pipeline: [{ $match: { $expr: { $and: [{ $eq: ['$postId', '$$authorId'] }, { $eq: ['$userActionType', 'like'] }] } } },
+                ], as: "isLiked"
+            }
+        },
+        { $project: { content: 1, _id: 0, isLiked: { $cond: { if: { $isArray: "$isLiked" }, then: { $size: "$isLiked" }, else: "NA" } } } }
+    ]);
+    let videoPosts = await PostData.aggregate([
+        { $match: { $and: [{ 'postAuthor': ObjectId(req.params.userId) }, { 'content.type': 'video' }] } },
+        { $skip: 0 },
+        { $limit: 5 },
+        {
+            $lookup: {
+                from: 'postactions', let: { 'authorId': '$_id' }, pipeline: [{ $match: { $expr: { $and: [{ $eq: ['$postId', '$$authorId'] }, { $eq: ['$userActionType', 'like'] }] } } },
+                ], as: "isLiked"
+            }
+        },
+        { $project: { content: 1, _id: 0, isLiked: { $cond: { if: { $isArray: "$isLiked" }, then: { $size: "$isLiked" }, else: "NA" } } } }
+    ]);
+    let data = await Promise.all([userDetail, imagePosts, videoPosts]).then((values) => {
+        return values;
+    });
+    res.status(200).json({
+        statusCode: 200,
+        message: 'success',
+        data: data
+    });
+});
+
+/**
+ * function to get all posts by all users
+ */
+exports.getAllPosts = catchAsync(async (req, res) => {
     let posts = await PostData.aggregate([
-        { $match: { $and: [{ 'postAuthor': ObjectId(req.params.userId) }, { 'content.type': req.query.type }] } },
+        { $match: { $and: [{ '_id': { $exists: true } }] } },
         { $skip: 0 },
         { $limit: 10 },
-        { $lookup: { from: "postactions", localField: "postAuthor", foreignField: "userId", as: "data" } },
-        { $addFields: { "isLiked": { "$filter": { "input": "$data","as": "i", "cond": { "$eq": ["$$i.userActionType", 'like'] } } } } },
-        { $project: { impressions: 1, postAuthor: 1, isLiked: { $cond: { if: { $isArray: "$isLiked" }, then: { $size: "$isLiked" }, else: "NA" } } } }
+        {
+            $lookup:
+            {
+                from: 'postactions',
+                let: { 'authorId': '$_id' },
+                pipeline: [{ $match: { $expr: { $and: [{ $eq: ['$postId', '$$authorId'] }, { $eq: ['$userActionType', 'like'] }] } } },
+                ], as: "isLiked"
+            }
+        },
+        { $project: { content: 1, _id: 0, impressions: 1, isLiked: { $cond: { if: { $isArray: "$isLiked" }, then: { $size: "$isLiked" }, else: "NA" } } } }
     ]);
     res.status(200).json({
         statusCode: 200,
@@ -35,24 +85,3 @@ exports.getLikedPosts = catchAsync(async (req, res) => {
         data: posts
     });
 });
-
-/**
- * function to list posts by user by types
- */
-exports.getAllPostsByUser = catchAsync(async (req, res) => {
-
-});
-
-// { $cond: { if: { $isArray: "$isLiked" }, then: { $size: "$isLiked" }, else: "NA" } }
-// 
-
-
-{
-    $lookup:
-      {
-         from: postactions,
-         let: { var a},
-         pipeline: [ <pipeline to execute on the joined collection> ],  // Cannot include $out or $merge
-         as: <output array field>
-      }
-  }
