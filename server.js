@@ -13,6 +13,7 @@ mongoose
         useNewUrlParser: true,
         useCreateIndex: true,
         useFindAndModify: false,
+        // useDebug:true
     }).then(() => console.log('DB connected'));
     mongoose.set('debug', true);    
 const port = process.env.PORT || 3000;

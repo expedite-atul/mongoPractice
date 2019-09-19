@@ -10,7 +10,7 @@ const postRouter = express.Router();
 
 postRouter.post('/user/post', protect, create);
 postRouter.get('/user/:userId/post/', protect, getLikedPosts);
-postRouter.get('/user/posts', protect, getAllPosts);
+postRouter.get('/user/:userId/posts', protect, getAllPosts);
 
 module.exports = postRouter;
 

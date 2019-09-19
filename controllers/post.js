@@ -31,8 +31,8 @@ exports.getLikedPosts = catchAsync(async (req, res) => {
             $lookup:
             {
                 from: 'postactions',
-                let: { 'authorId': '$_id' },
-                pipeline: [{ $match: { $expr: { $and: [{ $eq: ['$postId', '$$authorId'] }, { $eq: ['$userActionType', 'like'] }] } } },
+                let: { 'postId': '$_id' },
+                pipeline: [{ $match: { $expr: { $and: [{ $eq: ['$postId', '$$postId'] }, { $eq: ['$userActionType', 'like'] }] } } },
                 ], as: "isLiked"
             }
         },
@@ -44,7 +44,7 @@ exports.getLikedPosts = catchAsync(async (req, res) => {
         { $limit: 5 },
         {
             $lookup: {
-                from: 'postactions', let: { 'authorId': '$_id' }, pipeline: [{ $match: { $expr: { $and: [{ $eq: ['$postId', '$$authorId'] }, { $eq: ['$userActionType', 'like'] }] } } },
+                from: 'postactions', let: { 'postId': '$_id' }, pipeline: [{ $match: { $expr: { $and: [{ $eq: ['$postId', '$$postId'] }, { $eq: ['$userActionType', 'like'] }] } } },
                 ], as: "isLiked"
             }
         },
@@ -72,13 +72,14 @@ exports.getAllPosts = catchAsync(async (req, res) => {
             $lookup:
             {
                 from: 'postactions',
-                let: { 'authorId': '$_id' },
-                pipeline: [{ $match: { $expr: { $and: [{ $eq: ['$postId', '$$authorId'] }, { $eq: ['$userActionType', 'like'] }] } } },
+                let: { 'currentUser': req.params.userId,'postId':"$_id" },
+                pipeline: [{ $match: { $expr: { $and: [{ $eq: ['$userId', '$$currentUser'] }, { $eq: ['$postId', '$$postId'] },{ $eq: ['$userActionType', 'like'] }] } } },
                 ], as: "isLiked"
             }
         },
         { $project: { content: 1, _id: 0, impressions: 1, isLiked: { $cond: { if: { $isArray: "$isLiked" }, then: { $size: "$isLiked" }, else: "NA" } } } }
     ]);
+    console.log(posts);
     res.status(200).json({
         statusCode: 200,
         message: 'success',
